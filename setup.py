@@ -3,10 +3,10 @@
 from setuptools import setup
 
 setup(name='SimpleFramework',
-      version='1.0',
+      version='1.1',
       description='Simple Web Framework by Simplendi',
       author='Simplendi',
       author_email='info@simplendi.com',
       url='https://github.com/Simplendi/SimpleFramework',
-      packages=['framework'],
+      packages=['framework', 'framework.constants', 'framework.email', 'framework.httpexceptions', 'framework.util'],
       )
