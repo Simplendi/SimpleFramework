@@ -1,0 +1,17 @@
+# Optimized/Compiles files
+__pycache__/
+*.py[cod]
+
+# Virtual environments
+env/
+
+# Package files
+*.egg-info/
+build/
+dist/
+eggs/
+lib/
+
+# IDE files
+.idea/
+*.iml
