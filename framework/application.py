@@ -67,14 +67,6 @@ class Application():
             if self._session_repository:
                 # Save session
                 self._handleSession(state)
-        
-        # Handle HttpExceptions
-        except HttpException as httpexception:
-            state = self._handleHttpException(state, httpexception)
-        
-        # Handle undefined exceptions
-        #except Exception as exception:
-        #    state = self._handleUndefinedException(state, exception)
                             
         # Start sending the response
         state.startResponse()
@@ -113,7 +105,7 @@ class Application():
 
         # Run a controller function for undefined exceptions
         if self.undefined_exception_handler:
-            state = self.undefined_exception_handler(state)
+            state = self.undefined_exception_handler(state, exception)
         else:
             response.statuscode = 500
             response.body = ""
