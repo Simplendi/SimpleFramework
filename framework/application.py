@@ -52,22 +52,21 @@ class Application():
         
     def wsgi(self, environment, start_response):
         """WSGI-function to handle requests.
-        """       
-        try:
-            # Convert the environment to a state object
-            state = State(environment, start_response)
-            
-            if self._session_repository:
-                # Get session if available
-                state.session = self._fetchSession(state)
-            
-            # Process the state by calling itself
-            state = self(state)
-            
-            if self._session_repository:
-                # Save session
-                self._handleSession(state)
-                            
+        """
+        # Convert the environment to a state object
+        state = State(environment, start_response)
+
+        if self._session_repository:
+            # Get session if available
+            state.session = self._fetchSession(state)
+
+        # Process the state by calling itself
+        state = self(state)
+
+        if self._session_repository:
+            # Save session
+            self._handleSession(state)
+
         # Start sending the response
         state.startResponse()
 
@@ -105,7 +104,7 @@ class Application():
 
         # Run a controller function for undefined exceptions
         if self.undefined_exception_handler:
-            state = self.undefined_exception_handler(state, exception)
+            state = self.undefined_exception_handler(state)
         else:
             response.statuscode = 500
             response.body = ""
