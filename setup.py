@@ -3,7 +3,7 @@
 from setuptools import setup
 
 setup(name='SimpleFramework',
-      version='1.2',
+      version='1.2.1',
       description='Simple Web Framework by Simplendi',
       author='Simplendi',
       author_email='info@simplendi.com',
