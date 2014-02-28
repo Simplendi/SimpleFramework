@@ -36,7 +36,7 @@ class Application():
         # next request handler
         except HttpException as httpexception:
             if httpexception.statuscode in self.http_code_routes:
-                state = self._handleHttpException(state, httpexception)
+                state = self.http_code_routes[httpexception.statuscode](state)
                 return state
             else:
                 raise httpexception
@@ -56,16 +56,21 @@ class Application():
         # Convert the environment to a state object
         state = State(environment, start_response)
 
-        if self._session_repository:
-            # Get session if available
-            state.session = self._fetchSession(state)
+        try:
+            if self._session_repository:
+                # Get session if available
+                state.session = self._fetchSession(state)
 
-        # Process the state by calling itself
-        state = self(state)
+            # Process the state by calling itself
+            state = self(state)
 
-        if self._session_repository:
-            # Save session
-            self._handleSession(state)
+            if self._session_repository:
+                # Save session
+                self._handleSession(state)
+
+        # Handle any unhandled http exceptions
+        except HttpException as exception:
+            self._handleUnhandledHttpException(state, exception)
 
         # Start sending the response
         state.startResponse()
@@ -77,26 +82,7 @@ class Application():
         else:
             # body is a unicode-string encode it with the charset
             return [state.response.body.encode(state.response.charset)]
-        
-    def _handleHttpException(self, state, httpexception):
-        """Handles a HTTP exception
-        """
-        (request, response, session) = state.unfold()
-            
-        # Set statuscode to the corresponding code
-        response.statuscode = httpexception.statuscode
-            
-        # Run a controller function if available for the status code
-        if httpexception.statuscode in self.http_code_routes:
-            state = self.http_code_routes[httpexception.statuscode](state)
-        else:
-            try:
-                response.body = httpexception.body
-            except AttributeError:
-                response.body = ""
-            
-        return state
-    
+
     def _handleUndefinedException(self, state, exception):
         """Handles a non-HTTP exception
         """
@@ -104,12 +90,28 @@ class Application():
 
         # Run a controller function for undefined exceptions
         if self.undefined_exception_handler:
-            state = self.undefined_exception_handler(state)
+            state = self.undefined_exception_handler(state, exception)
         else:
             response.statuscode = 500
             response.body = ""
             
         return state
+
+    def _handleUnhandledHttpException(self, state, httpexception):
+        """
+        Handles a HTTP exception that is not handled by any user defined code
+        """
+        (request, response, session) = state.unfold()
+
+        response.statuscode = httpexception.statuscode
+
+        try:
+            response.body = httpexception.body
+        except AttributeError:
+            response.body = ""
+
+        return state
+
  
     def _fetchSession(self, state):
         (request, response, session) = state.unfold()
