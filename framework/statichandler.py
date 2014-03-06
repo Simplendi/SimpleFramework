@@ -26,6 +26,10 @@ class StaticHandler():
             
             # Try to guess the content type
             response.content_type = mimetypes.guess_type(self._folder + request.path_info)[0]
+
+            # Set a default content type if no guess was found
+            if not response.content_type:
+                response.content_type = "application/octet-stream"
             
             # We write binary data so return no charset
             response.charset = None
