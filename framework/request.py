@@ -109,8 +109,11 @@ class Request():
 
                 self.body = json.loads(body)
                 
-        else:
+        elif self.content_length:
             self.body = self.environment["wsgi.input"].read(self.content_length)
+            ß
+        else:
+            self.body = None
 
     def _parseQuery(self):
         """Parses the query strings that can be present in a request into a dictionary
