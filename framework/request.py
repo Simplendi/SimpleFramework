@@ -1,4 +1,5 @@
 import cgi
+import json
 from urllib.parse import unquote_plus
 
 from framework.util.acceptcontainer import AcceptContainer
@@ -46,6 +47,15 @@ class Request():
         
         # Get COOKIES
         self.cookies = CookieDict(environment.get('HTTP_COOKIE'))
+
+        # Get CONTENT_LENGTH
+        try:
+            self.content_length = int(self.environment.get('CONTENT_LENGTH'))
+        except ValueError:
+            self.content_length = None
+
+        # Get CONTENT_TYPE
+        self.content_type = self.environment.get('CONTENT_TYPE', '')
         
         # Parse body
         self._parseBody()
@@ -58,22 +68,13 @@ class Request():
         application/x-www-form-urlencoded is supported!
         """
         
-        # Try to parse the content-length header
-        try:
-            content_length = int(self.environment.get('CONTENT_LENGTH'))
-        except ValueError:
-            content_length = None
-        
-        # Get the content type of the request body    
-        content_type = self.environment.get('CONTENT_TYPE')
-        
         # If the content_type is defined and the content has a length try to parse the body
-        if content_type and content_length:
-            if content_type.startswith('application/x-www-form-urlencoded'):
+        if self.content_type and self.content_length:
+            if self.content_type.startswith('application/x-www-form-urlencoded'):
                 self.body = MultiDict()
                 
                 # Read the body from the virtual file
-                body = self.environment["wsgi.input"].read(content_length)
+                body = self.environment["wsgi.input"].read(self.content_length)
                 
                 # Decode the body from its latin-1 decoding to a python string
                 body = body.decode('latin-1')
@@ -87,11 +88,29 @@ class Request():
                     
                     # Add key/value to MultiDict 
                     self.body.append(unquote_plus(key), unquote_plus(value))
-            elif content_type.startswith("multipart/form-data"):
-                self.body = cgi.FieldStorage(fp=self.environment["wsgi.input"],environ=self.environment)
+
+            elif self.content_type.startswith("multipart/form-data"):
+                self.body = cgi.FieldStorage(fp=self.environment["wsgi.input"], environ=self.environment)
+
+            elif self.content_type.startswith("application/json"):
+                if "charset" in self.content_type:
+                    try:
+                        charset = self.content_type[self.content_type.find("charset"):].rpartition("=")[2]
+                    except:
+                        charset = "UTF8"
+                else:
+                    charset = "UTF8"
+
+                # Read the body from the virtual file
+                body = self.environment["wsgi.input"].read(self.content_length)
+
+                # Decode the body
+                body = body.decode(charset)
+
+                self.body = json.loads(body)
                 
         else:
-            self.body = MultiDict()
+            self.body = self.environment["wsgi.input"].read(self.content_length)
 
     def _parseQuery(self):
         """Parses the query strings that can be present in a request into a dictionary
