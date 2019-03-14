@@ -14,7 +14,6 @@ class AcceptContainer():
         if accept_header_string:
             self.parse(accept_header_string)
             
-            
     def parse(self, accept_header_string):
         """Parse the accept header string into the object
         """
@@ -28,7 +27,7 @@ class AcceptContainer():
             # Split the accept_param to see if a quality factor is present
             (key, _, quality_factor) = accept_param.partition(';')
                        
-            if quality_factor:
+            if "q=" in quality_factor:
                 # Quality factor is present, parse it
                 self.accepts[key] = float(quality_factor.partition('=')[2])
             else:
