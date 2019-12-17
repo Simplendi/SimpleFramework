@@ -1,6 +1,7 @@
 # Optimized/Compiles files
 __pycache__/
 *.py[cod]
+*.DS_Store
 
 # Virtual environments
 env/

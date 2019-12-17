@@ -29,7 +29,7 @@ class AcceptContainer():
                        
             if "q=" in quality_factor:
                 # Quality factor is present, parse it
-                self.accepts[key] = float(quality_factor.partition('=')[2])
+                self.accepts[key] = float(quality_factor.partition('q=')[2])
             else:
                 # No quality factor present, so 1.0 is assumed per HTTP/1.1 specifications
                 self.accepts[key] = 1.0
