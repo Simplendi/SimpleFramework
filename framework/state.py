@@ -8,10 +8,10 @@ class State():
     def __init__(self, environment, start_response):
         
         # Safe environment
-        self._environment = environment
+        self.environment = environment
         
         # Safe start_response function to be called later
-        self._start_response = start_response
+        self.start_response = start_response
         
         # Create a request-object out of the environment dictionary
         self.request = Request(environment)
@@ -21,12 +21,17 @@ class State():
                        
         # No session is created by default
         self.session = None
+
+        # Response handled externally is true if the framework should not start the response
+        self.response_handled_externally = False
         
         
         
     def startResponse(self):
         """Start sending the response by generating the response headers and passing them through
         """
+        if self.response_handled_externally:
+            return
                 
         # Generate cookie headers
         self.response.generateCookieHeaders()
@@ -47,7 +52,7 @@ class State():
         header_list = headers.items()
      
         # Start the response by sending the status and the headers    
-        self._start_response(self.response.status, header_list)
+        self.start_response(self.response.status, header_list)
         
         
     def unfold(self):

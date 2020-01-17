@@ -37,7 +37,7 @@ class Router():
             methods = httpmethods
             
         # Add route to the route list
-        self._routes.append((False, re.compile(regexp), function, methods))
+        self._routes.append((False, False, re.compile(regexp), function, methods))
         
     def addStaticMapping(self, regexp, folder, methods = None):
         """Adds a url to static files to the router. A regular expression is used to match the url.
@@ -49,10 +49,10 @@ class Router():
             
         static_handler = StaticHandler(folder)
             
-        self._routes.append((True, re.compile(regexp), static_handler.handle, methods))
+        self._routes.append((False, True, re.compile(regexp), static_handler.handle, methods))
     
     def addForwarding(self, regexp, application, methods = None):
-        """Ads a url to application mapping to the router. A regular expression is used to match the
+        """Adds a url to application mapping to the router. A regular expression is used to match the
         url. The matching part of the url is removed from the path_info.
         """
         
@@ -61,7 +61,12 @@ class Router():
             methods = httpmethods
             
         # Add route to the route list
-        self._routes.append((True, re.compile(regexp), application, methods))
+        self._routes.append((False, True, re.compile(regexp), application, methods))
+
+    def addWSGI(self, regexp, wsgi):
+        """Adds a WSGI function to  the router."""
+
+        self._routes.append((True, False, re.compile(regexp), wsgi, []))
         
     def _changeRequestForForwarding(self, state, matched_prefix):
         """Changes the path_info and script_name for forwarding. This is done to give the apps 
@@ -112,7 +117,13 @@ class Router():
         """
                 
         # Find first matching route
-        for (forwarding, compiled_regexp, appfunc, methods) in self._routes:
+        for (wsgi, forwarding, compiled_regexp, appfunc, methods) in self._routes:
+
+            if wsgi:
+                state.response_handled_externally = True
+                state.environment["state"] = state
+                state.response.body = appfunc(state.environment, state.start_response)
+                return state
             
             # See if the path info matches the reqular expression
             match = compiled_regexp.match(state.request.path_info)
