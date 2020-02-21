@@ -1,5 +1,7 @@
 import cgi
 import json
+import io
+import shutil
 from urllib.parse import unquote_plus
 
 from framework.util.acceptcontainer import AcceptContainer
@@ -74,7 +76,9 @@ class Request():
                 self.body = MultiDict()
                 
                 # Read the body from the virtual file
+                self._replaceBody()
                 body = self.environment["wsgi.input"].read(self.content_length)
+                self._resetBody()
                 
                 # Decode the body from its latin-1 decoding to a python string
                 body = body.decode('latin-1')
@@ -90,7 +94,9 @@ class Request():
                     self.body.append(unquote_plus(key), unquote_plus(value))
 
             elif self.content_type.startswith("multipart/form-data"):
+                self._replaceBody()
                 self.body = cgi.FieldStorage(fp=self.environment["wsgi.input"], environ=self.environment)
+                self._resetBody()
 
             elif self.content_type.startswith("application/json"):
                 if "charset" in self.content_type:
@@ -102,7 +108,9 @@ class Request():
                     charset = "UTF8"
 
                 # Read the body from the virtual file
+                self._replaceBody()
                 body = self.environment["wsgi.input"].read(self.content_length)
+                self._resetBody()
 
                 # Decode the body
                 body = body.decode(charset)
@@ -110,10 +118,21 @@ class Request():
                 self.body = json.loads(body)
                 
         elif self.content_length:
+            self._replaceBody()
             self.body = self.environment["wsgi.input"].read(self.content_length)
-            ß
+            self._resetBody()
         else:
             self.body = None
+
+    def _replaceBody(self):
+        rep = io.BytesIO()
+        shutil.copyfileobj(self.environment["wsgi.input"], rep)
+        self.environment["wsgi.input"] = rep
+        rep.seek(0)
+
+    def _resetBody(self):
+        self.environment["wsgi.input"].seek(0)
+
 
     def _parseQuery(self):
         """Parses the query strings that can be present in a request into a dictionary
