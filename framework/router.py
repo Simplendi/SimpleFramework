@@ -126,7 +126,7 @@ class Router():
             if match and wsgi:
                 state.response_handled_externally = True
                 state.environment["state"] = state
-                state.response.body = appfunc(state.environment, state.start_response)
+                state.response.body = appfunc(state.environment, state.start_response_wrapper)
                 return state
             elif match and state.request.method in methods:
                 # See if we have to forward or not

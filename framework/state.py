@@ -24,6 +24,9 @@ class State():
 
         # Response handled externally is true if the framework should not start the response
         self.response_handled_externally = False
+
+        # Header list to save headers provided by the start_response-wrapper
+        self.header_list = None
         
         
         
@@ -31,6 +34,8 @@ class State():
         """Start sending the response by generating the response headers and passing them through
         """
         if self.response_handled_externally:
+            cookie_headers = self.response.getCookieHeaders()
+            self.start_response(self.response.status, self.header_list + cookie_headers)
             return
                 
         # Generate cookie headers
@@ -59,3 +64,7 @@ class State():
         """Unfolds the state object into a request, response and session.
         """
         return (self.request, self.response, self.session)
+
+    def start_response_wrapper(self, status, header_list):
+        self.response.status = status
+        self.header_list = header_list

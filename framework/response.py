@@ -99,6 +99,9 @@ class Response(object):
         """
         for cookie_key in self.cookies:
             self.headers.append("Set-Cookie", self.cookies.getSetCookieHeader(cookie_key))
+
+    def getCookieHeaders(self):
+        return [("Set-Cookie", self.cookies.getSetCookieHeader(cookie_key)) for cookie_key in self.cookies]
             
     def setJsonBody(self, body = None):
         """Set the content-type to json and optionally set the body
