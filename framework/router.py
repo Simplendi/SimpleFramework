@@ -115,32 +115,32 @@ class Router():
     def _findroute(self, state):
         """Internal function to find the first matching route and execute that route.
         """
-                
+
         # Find first matching route
         for (wsgi, forwarding, compiled_regexp, appfunc, methods) in self._routes:
 
-            if wsgi:
+            # See if the path info matches the reqular expression
+            match = compiled_regexp.match(state.request.path_info)
+
+            # See if a wsgi handler was added for this match or not
+            if match and wsgi:
                 state.response_handled_externally = True
                 state.environment["state"] = state
                 state.response.body = appfunc(state.environment, state.start_response)
                 return state
-            
-            # See if the path info matches the reqular expression
-            match = compiled_regexp.match(state.request.path_info)
-            
-            if match and state.request.method in methods:
+            elif match and state.request.method in methods:
                 # See if we have to forward or not
                 if forwarding:
                     # Set the path_info and script_name right: This is such that apps forwarded to
-                    # have the idea they are on root.                  
+                    # have the idea they are on root.
                     state = self._changeRequestForForwarding(state, match.group(0))
-                    
+
                     # Forward request to the app
                     return appfunc(state)
                 else:
                     # Map request to function and pass variables that matched
                     return appfunc(state, *(match.groups()))
-                
+
         # No match found raise a HTTP Not Found Exception
         raise HttpNotFoundException()
   
