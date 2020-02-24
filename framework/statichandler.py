@@ -1,4 +1,5 @@
 import mimetypes
+from os import path
 
 from framework.httpexceptions import HttpNotFoundException
 
@@ -6,10 +7,11 @@ class StaticHandler():
     """StaticHandler handles request to static files and serves these files.
     """
     
-    def __init__(self, folder):
+    def __init__(self, folder, fallback_file = None):
         """Create new StaticHandler, point it to the base folder to search files in
         """
         self._folder = folder
+        self._fallback_file = fallback_file
         
         # If the path doesn't end with an "/" add one.
         if not self._folder.endswith("/"):
@@ -22,10 +24,15 @@ class StaticHandler():
         
         try:
             # Try to open the file in binary mode
-            file = open(self._folder + request.path_info, 'rb')
+            if self._fallback_file and not path.isfile(self._folder + request.path_info):
+                full_path = self._folder + self._fallback_file
+            else:
+                full_path = self._folder + request.path_info
+
+            file = open(full_path, 'rb')
             
             # Try to guess the content type
-            response.content_type = mimetypes.guess_type(self._folder + request.path_info)[0]
+            response.content_type = mimetypes.guess_type(full_path)[0]
 
             # Set a default content type if no guess was found
             if not response.content_type:
