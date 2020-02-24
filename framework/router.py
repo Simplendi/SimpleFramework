@@ -39,13 +39,13 @@ class Router():
         # Add route to the route list
         self._routes.append((False, False, re.compile(regexp), function, methods))
         
-    def addStaticMapping(self, regexp, path, methods = None, fallback_file = None):
+    def addStaticMapping(self, regexp, folder, methods = None, fallback_file = None):
         """Adds a url to static files to the router. A regular expression is used to match the url.
         """
         if not methods:
             methods = httpmethods
             
-        static_handler = StaticHandler(path, fallback_file)
+        static_handler = StaticHandler(folder, fallback_file)
             
         self._routes.append((False, True, re.compile(regexp), static_handler.handle, methods))
     
