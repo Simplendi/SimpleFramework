@@ -1,7 +1,6 @@
 import cgi
 import json
 import io
-import shutil
 from urllib.parse import unquote_plus
 
 from framework.util.acceptcontainer import AcceptContainer
@@ -126,7 +125,8 @@ class Request():
 
     def _replaceBody(self):
         rep = io.BytesIO()
-        shutil.copyfileobj(self.environment["wsgi.input"], rep)
+        buf = self.environment["wsgi.input"].read(self.content_length)
+        rep.write(buf)
         self.environment["wsgi.input"] = rep
         rep.seek(0)
 
