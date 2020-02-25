@@ -76,7 +76,9 @@ class Application():
         state.startResponse()
 
         # See what instance the body is
-        if isinstance(state.response.body, (bytes,)):
+        if state.response_handled_externally:
+            return state.response.body
+        elif isinstance(state.response.body, (bytes,)):
             # body is a bytes-string don't encode it
             return [state.response.body]
         else:

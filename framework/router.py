@@ -37,22 +37,20 @@ class Router():
             methods = httpmethods
             
         # Add route to the route list
-        self._routes.append((False, re.compile(regexp), function, methods))
+        self._routes.append((False, False, re.compile(regexp), function, methods))
         
-    def addStaticMapping(self, regexp, folder, methods = None):
+    def addStaticMapping(self, regexp, folder, methods = None, fallback_file = None):
         """Adds a url to static files to the router. A regular expression is used to match the url.
-        
-        TODO: WIP
         """
         if not methods:
             methods = httpmethods
             
-        static_handler = StaticHandler(folder)
+        static_handler = StaticHandler(folder, fallback_file)
             
-        self._routes.append((True, re.compile(regexp), static_handler.handle, methods))
+        self._routes.append((False, True, re.compile(regexp), static_handler.handle, methods))
     
     def addForwarding(self, regexp, application, methods = None):
-        """Ads a url to application mapping to the router. A regular expression is used to match the
+        """Adds a url to application mapping to the router. A regular expression is used to match the
         url. The matching part of the url is removed from the path_info.
         """
         
@@ -61,7 +59,12 @@ class Router():
             methods = httpmethods
             
         # Add route to the route list
-        self._routes.append((True, re.compile(regexp), application, methods))
+        self._routes.append((False, True, re.compile(regexp), application, methods))
+
+    def addWSGI(self, regexp, wsgi):
+        """Adds a WSGI function to  the router."""
+
+        self._routes.append((True, False, re.compile(regexp), wsgi, []))
         
     def _changeRequestForForwarding(self, state, matched_prefix):
         """Changes the path_info and script_name for forwarding. This is done to give the apps 
@@ -110,26 +113,32 @@ class Router():
     def _findroute(self, state):
         """Internal function to find the first matching route and execute that route.
         """
-                
+
         # Find first matching route
-        for (forwarding, compiled_regexp, appfunc, methods) in self._routes:
-            
+        for (wsgi, forwarding, compiled_regexp, appfunc, methods) in self._routes:
+
             # See if the path info matches the reqular expression
             match = compiled_regexp.match(state.request.path_info)
-            
-            if match and state.request.method in methods:
+
+            # See if a wsgi handler was added for this match or not
+            if match and wsgi:
+                state.response_handled_externally = True
+                state.environment["state"] = state
+                state.response.body = appfunc(state.environment, state.start_response_wrapper)
+                return state
+            elif match and state.request.method in methods:
                 # See if we have to forward or not
                 if forwarding:
                     # Set the path_info and script_name right: This is such that apps forwarded to
-                    # have the idea they are on root.                  
+                    # have the idea they are on root.
                     state = self._changeRequestForForwarding(state, match.group(0))
-                    
+
                     # Forward request to the app
                     return appfunc(state)
                 else:
                     # Map request to function and pass variables that matched
                     return appfunc(state, *(match.groups()))
-                
+
         # No match found raise a HTTP Not Found Exception
         raise HttpNotFoundException()
   
