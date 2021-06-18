@@ -13,4 +13,4 @@ class HttpBadRequestException(HttpException):
         # Set reason
         if not reason:
             reason = ""
-        self.reason = reason        
+        self.reason = reason
