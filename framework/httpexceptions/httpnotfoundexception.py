@@ -9,7 +9,7 @@ class HttpNotFoundException(HttpException):
         """
         
         # Set status code
-        self.statuscode = 404      
+        self.statuscode = 404
         
         # Set reason
         if not reason:
