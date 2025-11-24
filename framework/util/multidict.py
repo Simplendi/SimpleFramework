@@ -26,7 +26,8 @@ class MultiDict():
         if not values:
             self._items[key] = []
             self._items[key].append(value)
-        self._items[key][0] = value
+        else:
+            self._items[key][0] = value
         
         return
     
@@ -80,8 +81,11 @@ class MultiDict():
     def occurences(self, key):
         """ Counts the amount of occurrences of a key
         """
-        
-        return len(self._items.get(key)) 
+        values = self._items.get(key)
+        if values:
+            return len(values)
+        else:
+            return 0 
     
     def get(self, key, default = None):
         """Safely gets the first value for a key, default if the key isn't found

@@ -111,5 +111,5 @@ class Response(object):
             self.body = body
             
     def setRedirect(self, url, response_code = 302):
-        self.statuscode = 302
+        self.statuscode = response_code
         self.headers.append("Location", url)

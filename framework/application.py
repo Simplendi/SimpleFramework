@@ -167,6 +167,7 @@ class Application():
         session_cookie_name = config["session_cookie"]
         session_httponly = config["session_httponly"]
         session_secure = config["session_secure"]
+        session_samesite = config.get("session_samesite", "Lax")
         
         # Set the Session Cookie with it's parameters
         response.cookies[session_cookie_name] = str(session.id)
@@ -174,6 +175,7 @@ class Application():
         response.cookies.setSecure(session_cookie_name, session_secure)
         response.cookies.setExpires(session_cookie_name, session.expires)
         response.cookies.setPath(session_cookie_name, "/")
+        response.cookies.setSameSite(session_cookie_name, session_samesite)
         
         return state       
                         

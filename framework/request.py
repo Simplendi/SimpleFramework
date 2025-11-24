@@ -143,6 +143,10 @@ class Request():
         # Get the query string
         query_string = self.environment.get("QUERY_STRING")
         
+        # If no query string is present, return early
+        if not query_string:
+            return
+        
         # The seperator per key/value-pair is & so we split on that
         pairs = query_string.split('&')
         

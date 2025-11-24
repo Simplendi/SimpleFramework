@@ -1,6 +1,5 @@
-import uuid
-from datetime import datetime
-from datetime import timedelta
+import os
+from datetime import datetime, timedelta, timezone
 
 class Session():
     """Session classes instances are used to store sessions. A session behaves like a dictionary; 
@@ -8,18 +7,18 @@ class Session():
     """
     
     def __init__(self):
-        """Create a new Session object. This autogenerates a random UUID session id and an expiry 
+        """Create a new Session object. This autogenerates a random 64-byte session id and an expiry 
         time
         """
         
         # Session ID
-        self._id = uuid.uuid4()
+        self._id = os.urandom(64).hex()
         
         # A dictionary to store session data
         self._data = dict()
         
         # Expires stores the time the session will expire. Default is 1 hour
-        self._expires = datetime.utcnow() + timedelta(hours = 1)
+        self._expires = datetime.now(timezone.utc) + timedelta(hours = 1)
         
         # The boolean changed is used to prevent unnecessary saving of the session
         self._changed = False
@@ -93,7 +92,7 @@ class Session():
     def setSessionLifetime(self, hours):
         """Set the session expiry on now+hours
         """
-        expires = datetime.utcnow() + timedelta(hours = hours)
+        expires = datetime.now(timezone.utc) + timedelta(hours = hours)
         self.expires = expires
     
     

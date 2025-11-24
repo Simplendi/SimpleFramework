@@ -11,6 +11,7 @@ class CookieDict():
     # ["path"] = Path
     # ["secure"] = Secure
     # ["httponly"] = HttpOnly
+    # ["samesite"] = SameSite
     
     def __init__(self, cookie_header = None):
         """Initialize a cookie dictionary for storing cookies and their values. This is a extension 
@@ -31,6 +32,7 @@ class CookieDict():
         self._cookies[key]["path"] = None
         self._cookies[key]["secure"] = False
         self._cookies[key]["httponly"] = False
+        self._cookies[key]["samesite"] = None
         
     def __getitem__(self, key):
         """Get value for cookie with key.
@@ -110,6 +112,19 @@ class CookieDict():
         """Set the HTTP-only attribute for cookie with key.
         """
         self._cookies[key]["httponly"] = value
+    
+    def getSameSite(self, key):
+        """Get the SameSite attribute for cookie with key.
+        """
+        return self._cookies[key]["samesite"]
+    
+    def setSameSite(self, key, value):
+        """Set the SameSite attribute for cookie with key.
+        Valid values are: 'Strict', 'Lax', or 'None'.
+        """
+        if value not in [None, 'Strict', 'Lax', 'None']:
+            raise ValueError("SameSite must be 'Strict', 'Lax', 'None', or None")
+        self._cookies[key]["samesite"] = value
         
     def getExpires(self, key):
         """Get the expires attribute for cookie with key.
@@ -121,7 +136,7 @@ class CookieDict():
         """
         self._cookies[key]["expires"] = value
         
-    def expireNow(self):
+    def expireNow(self, key):
         """Expire the cookie now
         """
         self._cookies[key]["expires"] = datetime(year = 1900, month = 1, day = 1)
@@ -170,6 +185,8 @@ class CookieDict():
             header_string += "; Domain=" + self.getDomain(key)
         if self.getPath(key):
             header_string += "; Path=" + self.getPath(key)
+        if self.getSameSite(key):
+            header_string += "; SameSite=" + self.getSameSite(key)
             
         return header_string
         

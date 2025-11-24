@@ -1,5 +1,5 @@
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 
 from .session import Session
 
@@ -17,7 +17,7 @@ class SessionRepository():
         cursor = self._db_pool.connect().cursor()
         
         # Query the session from the database, only searching for still valid sessions
-        cursor.execute("SELECT id, data, expires FROM sessions WHERE id = %s and expires > %s", (session_id, datetime.utcnow()))
+        cursor.execute("SELECT id, data, expires FROM sessions WHERE id = %s and expires > %s", (session_id, datetime.now(timezone.utc)))
         
         # Get the first matching session
         result = cursor.fetchone()

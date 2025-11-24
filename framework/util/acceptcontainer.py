@@ -26,6 +26,9 @@ class AcceptContainer():
             
             # Split the accept_param to see if a quality factor is present
             (key, _, quality_factor) = accept_param.partition(';')
+            
+            # Strip whitespace from key
+            key = key.strip()
                        
             if "q=" in quality_factor:
                 # Quality factor is present, parse it
