@@ -115,11 +115,10 @@ class Request():
                 body = body.decode(charset)
 
                 self.body = json.loads(body)
-                
-        elif self.content_length:
-            self._replaceBody()
-            self.body = self.environment["wsgi.input"].read(self.content_length)
-            self._resetBody()
+            else:
+                self._replaceBody()
+                self.body = self.environment["wsgi.input"].read(self.content_length)
+                self._resetBody()
         else:
             self.body = None
 

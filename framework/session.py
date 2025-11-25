@@ -7,12 +7,12 @@ class Session():
     """
     
     def __init__(self):
-        """Create a new Session object. This autogenerates a random 64-byte session id and an expiry 
+        """Create a new Session object. This autogenerates a random 32-byte session id and an expiry 
         time
         """
         
         # Session ID
-        self._id = os.urandom(64).hex()
+        self._id = os.urandom(32).hex()
         
         # A dictionary to store session data
         self._data = dict()
@@ -23,7 +23,7 @@ class Session():
         # The boolean changed is used to prevent unnecessary saving of the session
         self._changed = False
         
-        # The boolean stored is used to indicaed wheter a session is stored
+        # The boolean stored is used to indicated whether a session is stored
         self._stored = False
 
         
@@ -89,11 +89,18 @@ class Session():
     """This property contains the expiry time as datetime object. This property supports read and write.
     """)
     
-    def setSessionLifetime(self, hours):
-        """Set the session expiry on now+hours
+    def setSessionLifetime(self, minutes):
+        """Set the session expiry on now+minutes
         """
-        expires = datetime.now(timezone.utc) + timedelta(hours = hours)
+        expires = datetime.now(timezone.utc) + timedelta(minutes = minutes)
         self.expires = expires
+
+    def renewID(self):
+        """Generate a new session ID for this session
+        """
+        self._id = os.urandom(32).hex()
+        self._changed = True
+        self._stored = False
     
     
             

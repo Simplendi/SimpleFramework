@@ -146,16 +146,16 @@ class Application():
     def _handleSession(self, state):
         (request, response, session) = state.unfold()
         
-        if session.isChanged() and session.isStored():
-            # Save the session
-            self._session_repository.save(session)
-
-        elif session.isChanged() and not session.isStored():
-            # Add the session to the repository
-            self._session_repository.add(session)
-            
-            # Set a cookie for the client to remember the session id
-            state = self._createSessionCookie(state)
+        if session.isChanged():
+            if session.isStored():
+                # Save the session
+                self._session_repository.save(session)
+            else:
+                # Add the session to the repository
+                self._session_repository.add(session)
+                
+                # Set a cookie for the client to remember the session id
+                state = self._createSessionCookie(state)
             
         return state        
     
@@ -173,7 +173,6 @@ class Application():
         response.cookies[session_cookie_name] = str(session.id)
         response.cookies.setHttpOnly(session_cookie_name, session_httponly)
         response.cookies.setSecure(session_cookie_name, session_secure)
-        response.cookies.setExpires(session_cookie_name, session.expires)
         response.cookies.setPath(session_cookie_name, "/")
         response.cookies.setSameSite(session_cookie_name, session_samesite)
         
