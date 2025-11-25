@@ -23,6 +23,8 @@ class Application():
         
         # Create a session repository for storing and fetching sessions
         self._session_repository = None
+
+        self.config = Config()
                 
     def __call__(self, state):
         """Handle a request which is already converted to an object. By default the controller is 
@@ -119,9 +121,8 @@ class Application():
         (request, response, session) = state.unfold()
         
         # Get Config to get variables
-        config = Config()
-        session_cookie_name = config["session_cookie"]
-        session_lifetime = config["session_lifetime"] 
+        session_cookie_name = self.config["session_cookie"]
+        session_lifetime = self.config["session_lifetime"] 
         
         # Check if a session id cookie is present
         if session_cookie_name in request.cookies:
@@ -130,6 +131,8 @@ class Application():
                 
             # Return the session if one was found with the session id
             if session:
+                # Set session expiry
+                session.setSessionLifetime(session_lifetime)
                 return session
 
         # No SessionID is present create a new session
@@ -139,14 +142,14 @@ class Application():
         session.setSessionLifetime(session_lifetime)
             
         # Nothing is really changed, so dismiss changed for now
-        session._changed = False
+        session._expires_changed = False
             
         return session
     
     def _handleSession(self, state):
         (request, response, session) = state.unfold()
         
-        if session.isChanged():
+        if session.isChanged() or session.isExpiresChanged():
             if session.isStored():
                 # Save the session
                 self._session_repository.save(session)
@@ -163,11 +166,10 @@ class Application():
         (request, response, session) = state.unfold()
                     
         # Get Config to get variables
-        config = Config()
-        session_cookie_name = config["session_cookie"]
-        session_httponly = config["session_httponly"]
-        session_secure = config["session_secure"]
-        session_samesite = config.get("session_samesite", "Lax")
+        session_cookie_name = self.config["session_cookie"]
+        session_httponly = self.config["session_httponly"]
+        session_secure = self.config["session_secure"]
+        session_samesite = self.config.get("session_samesite", "Lax")
         
         # Set the Session Cookie with it's parameters
         response.cookies[session_cookie_name] = str(session.id)

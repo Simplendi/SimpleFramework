@@ -22,6 +22,9 @@ class Session():
         
         # The boolean changed is used to prevent unnecessary saving of the session
         self._changed = False
+
+        # The boolean expires_changed is used to indicate whether the expiry time changed
+        self._expires_changed = False
         
         # The boolean stored is used to indicated whether a session is stored
         self._stored = False
@@ -65,6 +68,11 @@ class Session():
         """
         return self._changed  
     
+    def isExpiresChanged(self):
+        """Returns True if the session expiry time changed after creation, False otherwise.
+        """
+        return self._expires_changed
+    
     def isStored(self):
         """Returns True if the session is stored somewhere.
         """
@@ -83,7 +91,7 @@ class Session():
     
     def _setExpires(self, expires):
         self._expires = expires
-        self._changed = True
+        self._expires_changed = True
         
     expires = property(_getExpires, _setExpires, None, 
     """This property contains the expiry time as datetime object. This property supports read and write.

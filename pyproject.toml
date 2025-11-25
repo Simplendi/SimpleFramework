@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "SimpleFramework"
-version = "1.4.5"
+version = "1.4.8"
 description = "Simple Web Framework by Simplendi"
 authors = [
     {name = "Simplendi", email = "info@simplendi.com"}
